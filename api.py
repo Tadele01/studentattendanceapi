@@ -12,7 +12,7 @@ from threading import Thread
 from time import sleep 
 app = Flask(__name__)
 app.config['dbconfig'] = {'host':'127.0.0.1', 'user':'root', 'database':'android',}
-studentDBR = '''select first_name, last_name, course, section, department, password from student '''
+
 
 @app.route('/')
 def index():
@@ -21,7 +21,8 @@ def index():
 @app.route('/stddb/student', methods=['GET'])
 def get_all_student():
     with useDatabase(app.config['dbconfig']) as cursor :
-        cursor.execute(studentDBR)
+        _SQL = '''select first_name, last_name, course, section, department, password from student '''
+        cursor.execute(_SQL)
         contents = cursor.fetchall()  
     return jsonify(contents)
 
@@ -75,6 +76,30 @@ def delete_student(id):
         cursor.execute(_SQL,(id,))
     return jsonify({'response':'Success'})
 
+'''
+operations for taking attendace
+'''
+@app.route('/stddb/attendance', methods=['POST'])
+def add_attend_student():
+    with useDatabase(app.config['dbconfig']) as cursor :
+        _SQL = '''insert into attendance (first_name,last_name, status, date) values (%s,%s,%s,%s) '''
+        cursor.execute(_SQL,(str(request.json['first_name']), str(request.json['last_name']), request.json['status'], str(request.json['date'])))
+        studentDBR = '''select first_name, last_name, status, date from attendance '''
+        cursor.execute(studentDBR)
+        contents = cursor.fetchall()  
+    return jsonify(contents)
+
+@app.route('/stddb/attendance', methods=['GET'])
+def get_attendance():
+    with useDatabase(app.config['dbconfig']) as cursor :
+        _SQL = '''select first_name, last_name, status, date from attendance '''
+        cursor.execute(_SQL)
+        contents = cursor.fetchall()  
+    return jsonify(contents)
+
+'''
+Operations for teachers
+'''
 
 
 if __name__ == '__main__':
