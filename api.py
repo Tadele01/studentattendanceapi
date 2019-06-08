@@ -84,8 +84,8 @@ def add_attend_student():
     with useDatabase(app.config['dbconfig']) as cursor :
         _SQL = '''insert into attendance (first_name,last_name, status, date) values (%s,%s,%s,%s) '''
         cursor.execute(_SQL,(str(request.json['first_name']), str(request.json['last_name']), request.json['status'], str(request.json['date'])))
-        studentDBR = '''select first_name, last_name, status, date from attendance '''
-        cursor.execute(studentDBR)
+        _SQL = '''select first_name, last_name, status, date from attendance '''
+        cursor.execute(_SQL)
         contents = cursor.fetchall()  
     return jsonify(contents)
 
@@ -100,6 +100,26 @@ def get_attendance():
 '''
 Operations for teachers
 '''
+@app.route('/stddb/teacher', methods=['POST'])
+def add_teacher():
+    with useDatabase(app.config['dbconfig']) as cursor :
+        _SQL = '''insert into teacher (name,password, course) values (%s,%s,%s) '''
+        cursor.execute(_SQL,(str(request.json['name']), str(request.json['password']), request.json['course']))
+        _SQL = '''select name, course from teacher '''
+        cursor.execute(_SQL)
+        contents = cursor.fetchall()  
+    return jsonify(contents)
+
+@app.route('/stddb/teacher', methods=['POST'])
+def login_teacher():
+    with useDatabase(app.config['dbconfig']) as cursor :
+        _SQL = '''select name from  teacher where (name = %s and password = %s) '''
+        cursor.execute(_SQL,(str(request.json['name']), str(request.json['password'])))
+        contents = cursor.fetchall()  
+    return jsonify(contents)
+
+
+
 
 
 if __name__ == '__main__':
