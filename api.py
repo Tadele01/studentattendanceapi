@@ -12,8 +12,6 @@ from threading import Thread
 from time import sleep 
 app = Flask(__name__)
 app.config['dbconfig'] = {'host':'127.0.0.1', 'user':'root', 'database':'android',}
-studentDB = [{'id':'1', 'name':'tade'},{'id':'2', 
-             'name':'jo_the_tall'},{'id':'3', 'name':'tiny_jo'}]
 studentDBR = '''select first_name, last_name, course, section, department, password from student '''
 
 @app.route('/')
@@ -27,19 +25,37 @@ def get_all_student():
         contents = cursor.fetchall()  
     return jsonify(contents)
 
-@app.route('/stddb/student/<stdid>', methods= ['GET'])
-def get_student(stdid):
-    std = [std for std in studentDB if (std['id'] == stdid)]
-    return jsonify({'std': std})
+@app.route('/stddb/student/<id>', methods= ['GET'])
+def get_student(id):
+    with useDatabase(app.config['dbconfig']) as cursor :
+        _SQL = '''select first_name, last_name, course, section, department from student where id = %s '''
+        cursor.execute(_SQL, (id,))
+        contents = cursor.fetchall()
+    return jsonify(contents)
 
 
-@app.route('/stddb/student/<stdid>',methods=['PUT'])
-def update_std(stdid): 
-    std = [ std for std in studentDB if (std['id'] == stdid) ] 
-    if 'name' in request.json : 
-        std[0]['name'] = request.json['name'] 
-    return jsonify({'std':std[0]})
-
+@app.route('/stddb/student/<id>',methods=['PUT'])
+def update_std(id): 
+    with useDatabase(app.config['dbconfig']) as cursor :
+        if 'first_name' in request.json:
+            _SQL = '''update student set first_name = %s where id = %s '''
+            cursor.execute(_SQL, (request.json['first_name'],id))
+        if 'last_name' in request.json:
+            _SQL = '''update student set last_name = %s where id = %s '''
+            cursor.execute(_SQL, (request.json['last_name'],id))
+        if 'section' in request.json:
+            _SQL = '''update student set section = %s where id = %s '''
+            cursor.execute(_SQL, (request.json['section'],id))
+        if 'department' in request.json:
+            _SQL = '''update student set department = %s where id = %s '''
+            cursor.execute(_SQL, (request.json['first_name'],id))
+        if 'course' in request.json:
+            _SQL = '''update student set course = %s where id = %s '''
+            cursor.execute(_SQL, (request.json['course'],id))
+        _SQL = '''select first_name, last_name, course, section, department from student where id = %s '''
+        cursor.execute(_SQL, (id,))
+        contents = cursor.fetchall() 
+    return jsonify(contents)
 @app.route('/stddb/student',methods=['POST'])
 def create_student():
     with useDatabase(app.config['dbconfig']) as cursor :
@@ -52,13 +68,14 @@ def create_student():
     
 
 
-@app.route('/stddb/student/<stdid>',methods=['DELETE'])
-def delete_student(stdid): 
-    std = [ std for std in studentDB if (std['id'] == stdid) ] 
-    if len(std) == 0:
-        return 'no element found to delete'
-    studentDB.remove(std[0])
+@app.route('/stddb/student/<id>',methods=['DELETE'])
+def delete_student(id): 
+    with useDatabase(app.config['dbconfig']) as cursor :
+        _SQL = '''delete from student where id = %s '''
+        cursor.execute(_SQL,(id,))
     return jsonify({'response':'Success'})
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)
