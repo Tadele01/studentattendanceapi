@@ -26,8 +26,16 @@ def get_all_student():
         contents = cursor.fetchall()  
     return jsonify(contents)
 
+@app.route('/stddb/student/<course>', methods= ['GET'])
+def get_student(course):
+    with useDatabase(app.config['dbconfig']) as cursor :
+        _SQL = '''select first_name, last_name from student where course = %s '''
+        cursor.execute(_SQL, (course,))
+        contents = cursor.fetchall()
+    return jsonify(contents)
+
 @app.route('/stddb/student/<id>', methods= ['GET'])
-def get_student(id):
+def get_student_by_course(id):
     with useDatabase(app.config['dbconfig']) as cursor :
         _SQL = '''select first_name, last_name, course, section, department from student where id = %s '''
         cursor.execute(_SQL, (id,))
@@ -100,27 +108,31 @@ def get_attendance():
 '''
 Operations for teachers
 '''
-@app.route('/stddb/teacher', methods=['POST'])
-def add_teacher():
+@app.route('/stddb/teacher', methods=['GET'])
+def get_teacher():
     with useDatabase(app.config['dbconfig']) as cursor :
-        _SQL = '''insert into teacher (name,password, course) values (%s,%s,%s) '''
-        cursor.execute(_SQL,(str(request.json['name']), str(request.json['password']), request.json['course']))
         _SQL = '''select name, course from teacher '''
         cursor.execute(_SQL)
         contents = cursor.fetchall()  
     return jsonify(contents)
 
 @app.route('/stddb/teacher', methods=['POST'])
+def add_teacher():
+    with useDatabase(app.config['dbconfig']) as cursor :
+        _SQL = '''insert into teacher (name,password, course) values (%s,%s,%s) '''
+        cursor.execute(_SQL,(str(request.json['name']), str(request.json['password']), str(request.json['course'])))
+        _SQL = '''select name, course from teacher '''
+        cursor.execute(_SQL)
+        contents = cursor.fetchall()  
+    return jsonify(contents)
+
+@app.route('/stddb/teacher/login', methods=['POST'])
 def login_teacher():
     with useDatabase(app.config['dbconfig']) as cursor :
         _SQL = '''select name from  teacher where (name = %s and password = %s) '''
         cursor.execute(_SQL,(str(request.json['name']), str(request.json['password'])))
         contents = cursor.fetchall()  
     return jsonify(contents)
-
-
-
-
 
 if __name__ == '__main__':
     app.run(debug=True)
