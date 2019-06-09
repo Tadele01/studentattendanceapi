@@ -10,6 +10,7 @@ from flask import Flask, request, jsonify
 from flask import copy_current_request_context
 from threading import Thread
 from time import sleep 
+from datetime import datetime
 import json
 app = Flask(__name__)
 app.config['dbconfig'] = {'host':'127.0.0.1', 'user':'root', 'database':'android',}
@@ -98,12 +99,13 @@ operations for taking attendace
 def add_attend_student():
     with useDatabase(app.config['dbconfig']) as cursor :
         _SQL = '''insert into attendance (first_name,last_name, status, date) values (%s,%s,%s,%s) '''
-        cursor.execute(_SQL,(str(request.json['first_name']), str(request.json['last_name']), request.json['status'], str(request.json['date']))) 
+        date = datetime.today().strftime('%Y-%m-%d')
+        cursor.execute(_SQL,(str(request.json['first_name']), str(request.json['last_name']), request.json['status'], date))
     return jsonify({'response':'Success'})
 
 @app.route('/stddb/attendance', methods=['GET'])
 def get_attendance():
-    response = ['first_name', 'last_name', 'status']
+    response = ['first_name', 'last_name', 'status', 'date']
     data = [] 
     with useDatabase(app.config['dbconfig']) as cursor :
         _SQL = '''select first_name, last_name, status, date from attendance '''
