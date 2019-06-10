@@ -120,10 +120,10 @@ Operations for teachers
 '''
 @app.route('/stddb/teacher', methods=['GET'])
 def get_teacher():
-    response = ['name', 'course']
+    response = ['email', 'course']
     data = [] 
     with useDatabase(app.config['dbconfig']) as cursor :
-        _SQL = '''select name, course from teacher '''
+        _SQL = '''select email, course from teacher '''
         cursor.execute(_SQL)
         contents = cursor.fetchall()  
     for content in contents :
@@ -133,8 +133,8 @@ def get_teacher():
 @app.route('/stddb/teacher', methods=['POST'])
 def add_teacher():
     with useDatabase(app.config['dbconfig']) as cursor :
-        _SQL = '''insert into teacher (name,password, course) values (%s,%s,%s) '''
-        cursor.execute(_SQL,(str(request.json['name']), str(request.json['password']), str(request.json['course'])))
+        _SQL = '''insert into teacher (email,password, course) values (%s,%s,%s) '''
+        cursor.execute(_SQL,(str(request.json['email']), str(request.json['password']), str(request.json['course'])))
     return jsonify({'response':'Success'})
 
 @app.route('/stddb/teacher/login', methods=['POST'])
@@ -142,8 +142,8 @@ def login_teacher():
     response = ['name']
     data = [] 
     with useDatabase(app.config['dbconfig']) as cursor :
-        _SQL = '''select name from  teacher where (name = %s and password = %s) '''
-        cursor.execute(_SQL,(str(request.json['name']), str(request.json['password'])))
+        _SQL = '''select email from  teacher where (email = %s and password = %s) '''
+        cursor.execute(_SQL,(str(request.json['email']), str(request.json['password'])))
         contents = cursor.fetchall()  
     for content in contents :
         data.append(dict(zip(response, content)))
